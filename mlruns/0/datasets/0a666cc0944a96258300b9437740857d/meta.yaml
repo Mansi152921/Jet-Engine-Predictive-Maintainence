@@ -1,0 +1,43 @@
+digest: a0614fcd
+name: dataset
+profile: '{"num_rows": 20631, "num_elements": 990288}'
+schema: '{"mlflow_colspec": [{"type": "double", "name": "setting_1_mean", "required":
+  true}, {"type": "double", "name": "setting_1_std", "required": true}, {"type": "double",
+  "name": "setting_2_mean", "required": true}, {"type": "double", "name": "setting_2_std",
+  "required": true}, {"type": "double", "name": "setting_3_mean", "required": true},
+  {"type": "double", "name": "setting_3_std", "required": true}, {"type": "double",
+  "name": "sensor_1_mean", "required": true}, {"type": "double", "name": "sensor_1_std",
+  "required": true}, {"type": "double", "name": "sensor_2_mean", "required": true},
+  {"type": "double", "name": "sensor_2_std", "required": true}, {"type": "double",
+  "name": "sensor_3_mean", "required": true}, {"type": "double", "name": "sensor_3_std",
+  "required": true}, {"type": "double", "name": "sensor_4_mean", "required": true},
+  {"type": "double", "name": "sensor_4_std", "required": true}, {"type": "double",
+  "name": "sensor_5_mean", "required": true}, {"type": "double", "name": "sensor_5_std",
+  "required": true}, {"type": "double", "name": "sensor_6_mean", "required": true},
+  {"type": "double", "name": "sensor_6_std", "required": true}, {"type": "double",
+  "name": "sensor_7_mean", "required": true}, {"type": "double", "name": "sensor_7_std",
+  "required": true}, {"type": "double", "name": "sensor_8_mean", "required": true},
+  {"type": "double", "name": "sensor_8_std", "required": true}, {"type": "double",
+  "name": "sensor_9_mean", "required": true}, {"type": "double", "name": "sensor_9_std",
+  "required": true}, {"type": "double", "name": "sensor_10_mean", "required": true},
+  {"type": "double", "name": "sensor_10_std", "required": true}, {"type": "double",
+  "name": "sensor_11_mean", "required": true}, {"type": "double", "name": "sensor_11_std",
+  "required": true}, {"type": "double", "name": "sensor_12_mean", "required": true},
+  {"type": "double", "name": "sensor_12_std", "required": true}, {"type": "double",
+  "name": "sensor_13_mean", "required": true}, {"type": "double", "name": "sensor_13_std",
+  "required": true}, {"type": "double", "name": "sensor_14_mean", "required": true},
+  {"type": "double", "name": "sensor_14_std", "required": true}, {"type": "double",
+  "name": "sensor_15_mean", "required": true}, {"type": "double", "name": "sensor_15_std",
+  "required": true}, {"type": "double", "name": "sensor_16_mean", "required": true},
+  {"type": "double", "name": "sensor_16_std", "required": true}, {"type": "double",
+  "name": "sensor_17_mean", "required": true}, {"type": "double", "name": "sensor_17_std",
+  "required": true}, {"type": "double", "name": "sensor_18_mean", "required": true},
+  {"type": "double", "name": "sensor_18_std", "required": true}, {"type": "double",
+  "name": "sensor_19_mean", "required": true}, {"type": "double", "name": "sensor_19_std",
+  "required": true}, {"type": "double", "name": "sensor_20_mean", "required": true},
+  {"type": "double", "name": "sensor_20_std", "required": true}, {"type": "double",
+  "name": "sensor_21_mean", "required": true}, {"type": "double", "name": "sensor_21_std",
+  "required": true}]}'
+source: '{"tags": {"mlflow.user": "Mansi Chauhan", "mlflow.source.name": "src/models/train_model.py",
+  "mlflow.source.type": "LOCAL", "mlflow.source.git.commit": "fde059d348139579c9dfb09c9457515f2613a956"}}'
+source_type: code
