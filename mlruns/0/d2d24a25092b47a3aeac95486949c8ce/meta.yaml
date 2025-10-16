@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/0/d2d24a25092b47a3aeac95486949c8ce/artifacts
+end_time: 1760553576686
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: d2d24a25092b47a3aeac95486949c8ce
+run_name: Train_LightGBM
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1760553573404
+status: 3
+tags: []
+user_id: Mansi Chauhan

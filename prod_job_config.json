@@ -1,0 +1,15 @@
+{
+  "run_name": "[PROD] On-Demand Model Training",
+  "new_cluster": {
+    "spark_version": "13.3.x-scala2.12",
+    "node_type_id": "i3.xlarge",
+    "num_workers": 2
+  },
+  "spark_python_task": {
+    "python_file": "dbfs:/FileStore/jet_engine_project_prod/src/models/train_model.py"
+  },
+  "libraries": [
+    { "pypi": { "package": "lightgbm" }},
+    { "pypi": { "package": "mlflow" }}
+  ]
+}

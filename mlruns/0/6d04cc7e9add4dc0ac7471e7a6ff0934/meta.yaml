@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/0/6d04cc7e9add4dc0ac7471e7a6ff0934/artifacts
+end_time: 1760551956509
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 6d04cc7e9add4dc0ac7471e7a6ff0934
+run_name: luxuriant-asp-675
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1760551726047
+status: 3
+tags: []
+user_id: Mansi Chauhan

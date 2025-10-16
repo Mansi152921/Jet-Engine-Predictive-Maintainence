@@ -1,0 +1,11 @@
+digest: 0f02ba77
+name: dataset
+profile: '{"features_shape": [20582, 50, 24], "features_size": 24698400, "features_nbytes":
+  197587200, "targets_shape": [20582, 1], "targets_size": 20582, "targets_nbytes":
+  164656}'
+schema: '{"mlflow_tensorspec": {"features": "[{\"type\": \"tensor\", \"tensor-spec\":
+  {\"dtype\": \"float64\", \"shape\": [-1, 50, 24]}}]", "targets": "[{\"type\": \"tensor\",
+  \"tensor-spec\": {\"dtype\": \"int64\", \"shape\": [-1, 1]}}]"}}'
+source: '{"tags": {"mlflow.user": "Mansi Chauhan", "mlflow.source.name": "src/models/train_model.py",
+  "mlflow.source.type": "LOCAL", "mlflow.source.git.commit": "fde059d348139579c9dfb09c9457515f2613a956"}}'
+source_type: code

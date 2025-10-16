@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/0/0d70e64ee05f4f4f8fd93557f581ce92/artifacts
+end_time: 1760553576712
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 0d70e64ee05f4f4f8fd93557f581ce92
+run_name: Model Comparison Experiment
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1760553376723
+status: 3
+tags: []
+user_id: Mansi Chauhan

@@ -1,0 +1,64 @@
+artifact_path: mlflow-artifacts:/0/models/m-de85359df0ba4b9bbd2915fdc14a7b23/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.13.7
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.7.2
+is_signature_from_type_hint: false
+mlflow_version: 3.4.0
+model_id: m-de85359df0ba4b9bbd2915fdc14a7b23
+model_size_bytes: 8159522
+model_uuid: m-de85359df0ba4b9bbd2915fdc14a7b23
+prompts: null
+run_id: 0ce755f1fd014fcaa8aa9648647d2ff1
+signature:
+  inputs: '[{"type": "double", "name": "setting_1_mean", "required": true}, {"type":
+    "double", "name": "setting_1_std", "required": true}, {"type": "double", "name":
+    "setting_2_mean", "required": true}, {"type": "double", "name": "setting_2_std",
+    "required": true}, {"type": "double", "name": "setting_3_mean", "required": true},
+    {"type": "double", "name": "setting_3_std", "required": true}, {"type": "double",
+    "name": "sensor_1_mean", "required": true}, {"type": "double", "name": "sensor_1_std",
+    "required": true}, {"type": "double", "name": "sensor_2_mean", "required": true},
+    {"type": "double", "name": "sensor_2_std", "required": true}, {"type": "double",
+    "name": "sensor_3_mean", "required": true}, {"type": "double", "name": "sensor_3_std",
+    "required": true}, {"type": "double", "name": "sensor_4_mean", "required": true},
+    {"type": "double", "name": "sensor_4_std", "required": true}, {"type": "double",
+    "name": "sensor_5_mean", "required": true}, {"type": "double", "name": "sensor_5_std",
+    "required": true}, {"type": "double", "name": "sensor_6_mean", "required": true},
+    {"type": "double", "name": "sensor_6_std", "required": true}, {"type": "double",
+    "name": "sensor_7_mean", "required": true}, {"type": "double", "name": "sensor_7_std",
+    "required": true}, {"type": "double", "name": "sensor_8_mean", "required": true},
+    {"type": "double", "name": "sensor_8_std", "required": true}, {"type": "double",
+    "name": "sensor_9_mean", "required": true}, {"type": "double", "name": "sensor_9_std",
+    "required": true}, {"type": "double", "name": "sensor_10_mean", "required": true},
+    {"type": "double", "name": "sensor_10_std", "required": true}, {"type": "double",
+    "name": "sensor_11_mean", "required": true}, {"type": "double", "name": "sensor_11_std",
+    "required": true}, {"type": "double", "name": "sensor_12_mean", "required": true},
+    {"type": "double", "name": "sensor_12_std", "required": true}, {"type": "double",
+    "name": "sensor_13_mean", "required": true}, {"type": "double", "name": "sensor_13_std",
+    "required": true}, {"type": "double", "name": "sensor_14_mean", "required": true},
+    {"type": "double", "name": "sensor_14_std", "required": true}, {"type": "double",
+    "name": "sensor_15_mean", "required": true}, {"type": "double", "name": "sensor_15_std",
+    "required": true}, {"type": "double", "name": "sensor_16_mean", "required": true},
+    {"type": "double", "name": "sensor_16_std", "required": true}, {"type": "double",
+    "name": "sensor_17_mean", "required": true}, {"type": "double", "name": "sensor_17_std",
+    "required": true}, {"type": "double", "name": "sensor_18_mean", "required": true},
+    {"type": "double", "name": "sensor_18_std", "required": true}, {"type": "double",
+    "name": "sensor_19_mean", "required": true}, {"type": "double", "name": "sensor_19_std",
+    "required": true}, {"type": "double", "name": "sensor_20_mean", "required": true},
+    {"type": "double", "name": "sensor_20_std", "required": true}, {"type": "double",
+    "name": "sensor_21_mean", "required": true}, {"type": "double", "name": "sensor_21_std",
+    "required": true}]'
+  outputs: '[{"type": "tensor", "tensor-spec": {"dtype": "float64", "shape": [-1]}}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2025-10-15 18:37:09.730402'

@@ -1,0 +1,69 @@
+# .github/workflows/databricks_pipeline.yml
+
+name: Databricks CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  # 1. Continuous Integration (CI) - Runs on every push to dev or main
+  ci-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install dependencies and tools
+        run: |
+          pip install -r requirements.txt
+          pip install flake8 pytest
+      - name: Lint with flake8
+        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+  # 2. Deploy and Run on DEV Environment
+  run-on-dev:
+    needs: ci-checks
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev' # Only runs for the 'dev' branch
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Deploy and Trigger DEV Job
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+        run: |
+          pip install databricks-cli
+          DBFS_PATH="dbfs:/FileStore/jet_engine_project_dev"
+          echo "Uploading code to DEV path: ${DBFS_PATH}"
+          databricks fs rm -r ${DBFS_PATH} || true
+          databricks fs cp -r src ${DBFS_PATH}/src
+          echo "Submitting DEV job..."
+          databricks runs submit --json-file dev_job_config.json
+
+  # 3. Deploy and Run on PRODUCTION Environment
+  run-on-prod:
+    needs: ci-checks
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' # Only runs for the 'main' branch
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+      - name: Deploy and Trigger PROD Job
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN_NEW }}
+        run: |
+          pip install databricks-cli
+          DBFS_PATH="dbfs:/FileStore/jet_engine_project_prod"
+          echo "Uploading code to PROD path: ${DBFS_PATH}"
+          databricks fs rm -r ${DBFS_PATH} || true
+          databricks fs cp -r src ${DBFS_PATH}/src
+          echo "Submitting PROD job..."
+          databricks runs submit --json-file prod_job_config.json
