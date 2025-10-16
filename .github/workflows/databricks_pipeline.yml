@@ -7,6 +7,9 @@ on:
     branches:
       - main
       - dev
+  pull_request:
+      - main
+      - dev
 
 jobs:
   # 1. Continuous Integration (CI) - Runs on every push to dev or main
