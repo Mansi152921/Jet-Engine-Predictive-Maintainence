@@ -3,13 +3,13 @@
 name: Databricks CI/CD Pipeline
 
 on:
-  push:
-    branches:
-      - main
-      - dev
+  #push:
+    #branches:
+      #- main
+      #- dev
   pull_request:
     branches:
-      - main
+      #- main
       - dev
 
 jobs:
@@ -44,7 +44,7 @@ jobs:
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: |
           pip install databricks-cli
-          DBFS_PATH="/Workspace/Repos/mansi.chauhan@bizmetric.com/Jet-Engine-Predictive-Maintainence"          
+          DBFS_PATH="dbfs:/Workspace/Repos/mansi.chauhan@bizmetric.com/Jet-Engine-Predictive-Maintainence"          
           echo "Uploading code to DEV path: ${DBFS_PATH}"
           databricks fs rm -r ${DBFS_PATH} || true
           databricks fs cp -r src ${DBFS_PATH}/src
