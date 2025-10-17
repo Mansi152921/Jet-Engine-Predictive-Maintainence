@@ -34,7 +34,7 @@ jobs:
   run-on-dev:
     needs: ci-checks
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev' # Only runs for the 'dev' branch
+    #if: github.ref == 'refs/heads/dev' # Only runs for the 'dev' branch
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
