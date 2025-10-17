@@ -44,7 +44,7 @@ jobs:
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: |
           pip install databricks-cli
-          DBFS_PATH="dbfs:/FileStore/jet_engine_project_dev"
+          DBFS_PATH="/Workspace/Repos/mansi.chauhan@bizmetric.com/Jet-Engine-Predictive-Maintainence"          
           echo "Uploading code to DEV path: ${DBFS_PATH}"
           databricks fs rm -r ${DBFS_PATH} || true
           databricks fs cp -r src ${DBFS_PATH}/src
