@@ -29,6 +29,7 @@ def train_multiple_models(final_datapath, uc_model_name):
     
     # --- Databricks-specific Change ---
     # Set the registry to Unity Catalog (recommended)
+    mlflow.set_tracking_uri("databricks")
     mlflow.set_registry_uri("databricks-uc")
     
     logger.info('Starting model training and selection process...')
