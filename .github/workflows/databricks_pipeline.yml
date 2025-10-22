@@ -34,7 +34,7 @@ jobs:
   run-on-dev:
     needs: ci-checks
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev' # Only runs for merges/pushes to 'dev'
+    #if: github.ref == 'refs/heads/dev' # Only runs for merges/pushes to 'dev'
     steps:
       - name: Trigger DEV Job on Databricks
         env:
