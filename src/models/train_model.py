@@ -34,9 +34,9 @@ def train_multiple_models(final_datapath, uc_model_name):
     
     logger.info('Starting model training and selection process...')
 
-    experiment_name = f"{uc_model_name}_experiment"
-    mlflow.set_experiment(experiment_name=experiment_name)
-    
+    experiment_path = f"/Shared/experiments/{uc_model_name}"
+    mlflow.set_experiment(experiment_name=experiment_path)
+
     # --- Load Final Data from UC Volume ---
     # The path is now a direct Volume path, not a relative OS path
     X_train_path = os.path.join(final_datapath, 'X_train.csv')
