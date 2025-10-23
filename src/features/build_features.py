@@ -11,6 +11,9 @@ def build_features(processed_datapath, output_datapath, models_path):
     """
     Loads processed data, engineers tabular features for ML models,
     and saves the final feature set.
+    
+    In Databricks, these paths are expected to be absolute paths,
+    e.g., /Volumes/<catalog>/<schema>/<volume>/data/processed
     """
     logger = logging.getLogger(__name__)
     logger.info('Starting feature engineering for ML models...')
@@ -60,9 +63,17 @@ if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
 
-    project_dir = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
-    processed_datapath = os.path.join(project_dir, 'data', 'processed')
-    output_datapath = os.path.join(project_dir, 'data', 'final')
-    models_path = os.path.join(project_dir, 'models')
+    # --- Databricks-specific Change ---
+    # Define your Unity Catalog paths here.
+    # !! UPDATE THESE PLACEHOLDERS to match your environment !!
+    CATALOG_NAME = "jet_engine_catalog"
+    SCHEMA_NAME = "dev_schema"
+    VOLUME_NAME = "models_volume" # The name of your UC Volume
 
+    # Define the absolute paths within your Volume
+    processed_datapath = f"/Volumes/{CATALOG_NAME}/{SCHEMA_NAME}/{VOLUME_NAME}/data/processed"
+    output_datapath = f"/Volumes/{CATALOG_NAME}/{SCHEMA_NAME}/{VOLUME_NAME}/data/final"
+    models_path = f"/Volumes/{CATALOG_NAME}/{SCHEMA_NAME}/{VOLUME_NAME}/models"
+
+    # Run the main function
     build_features(processed_datapath, output_datapath, models_path)

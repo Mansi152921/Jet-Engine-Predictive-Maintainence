@@ -7,24 +7,31 @@ import numpy as np
 import mlflow
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 
-def predict_on_test_data(processed_datapath, models_path, model_name="PredictiveMaintenanceRUL", model_stage="None"):
+def predict_on_test_data(processed_datapath, uc_model_name):
     """
-    Loads the best model from the registry and evaluates it on the test set.
+    Loads the best model from the UC registry and evaluates it on the test set
+    loaded from a UC Volume.
     """
     logger = logging.getLogger(__name__)
-    mlflow.set_tracking_uri("http://127.0.0.1:5000")
-    logger.info(f"Loading model '{model_name}' from stage '{model_stage}'...")
+    
+    # --- Databricks-specific Change ---
+    # Set the registry to Unity Catalog
+    mlflow.set_registry_uri("databricks-uc")
+    
+    # REMOVED: mlflow.set_tracking_uri(...) - Databricks handles this.
+
+    logger.info(f"Loading model '{uc_model_name}' (latest version) from Unity Catalog...")
 
     # --- Load the Registered Model ---
-    # The URI format loads the latest version of the model from a specific stage
-    logged_model_uri = f'models:/{model_name}/latest'
+    # The UC URI format loads the latest version of the model
+    logged_model_uri = f'models:/{uc_model_name}@latest'
     loaded_model = mlflow.pyfunc.load_model(logged_model_uri)
     logger.info("Model loaded successfully.")
 
-    # --- Load and Process Test Data ---
+    # --- Load and Process Test Data from Volume ---
     test_df = pd.read_csv(os.path.join(processed_datapath, 'test_FD001.csv'))
     rul_df = pd.read_csv(os.path.join(processed_datapath, 'RUL_FD001.csv'))
-    logger.info("Loaded processed test and RUL data.")
+    logger.info("Loaded processed test and RUL data from Volume.")
 
     # --- Feature Engineering on Test Data (Must match training) ---
     window_size = 5
@@ -68,8 +75,18 @@ if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
 
-    project_dir = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
-    processed_datapath = os.path.join(project_dir, 'data', 'processed')
-    models_path = os.path.join(project_dir, 'models')
+    # --- Databricks-specific Change ---
+    # Define your Unity Catalog paths here.
+    # !! UPDATE THESE PLACEHOLDERS to match your environment !!
+    CATALOG_NAME = "jet_engine_catalog"
+    SCHEMA_NAME = "dev_schema"
+    VOLUME_NAME = "models_volume" # The name of your UC Volume
 
-    predict_on_test_data(processed_datapath, models_path)
+    # Define the absolute paths within your Volume
+    processed_datapath = f"/Volumes/{CATALOG_NAME}/{SCHEMA_NAME}/{VOLUME_NAME}/data/processed"
+    
+    # Define the 3-level name for your model in the UC Registry
+    uc_model_name = f"{CATALOG_NAME}.{SCHEMA_NAME}.PredictiveMaintenanceRUL"
+
+    # Run the main function
+    predict_on_test_data(processed_datapath, uc_model_name)
