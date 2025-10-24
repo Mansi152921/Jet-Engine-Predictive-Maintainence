@@ -5,26 +5,42 @@ import logging
 import pandas as pd
 import numpy as np
 import mlflow
+from mlflow.tracking import MlflowClient 
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 
-def predict_on_test_data(processed_datapath, models_path, model_name="PredictiveMaintenanceRUL", model_stage="None"):
+# --- ADD THIS IMPORT ---
+from pyspark.sql import SparkSession
+# ---------------------
+
+def predict_on_test_data(processed_datapath, uc_model_name):
     """
-    Loads the best model from the registry and evaluates it on the test set.
+    Loads the best model from the UC registry, evaluates it, and
+    saves the predictions to a Delta table.
     """
     logger = logging.getLogger(__name__)
-    mlflow.set_tracking_uri("http://127.0.0.1:5000")
-    logger.info(f"Loading model '{model_name}' from stage '{model_stage}'...")
+    
+    mlflow.set_registry_uri("databricks-uc")
+    logger.info(f"Loading latest version of model '{uc_model_name}' from Unity Catalog...")
 
-    # --- Load the Registered Model ---
-    # The URI format loads the latest version of the model from a specific stage
-    logged_model_uri = f'models:/{model_name}/latest'
+    client = MlflowClient()
+    
+    try:
+        all_versions = client.search_model_versions(f"name='{uc_model_name}'")
+        latest_version_obj = sorted(all_versions, key=lambda v: int(v.version), reverse=True)[0]
+        latest_version = latest_version_obj.version
+        logger.info(f"Found latest version: {latest_version}")
+    except IndexError:
+        logger.error(f"No model versions found for '{uc_model_name}'. Did the training job run?")
+        raise
+    
+    logged_model_uri = f'models:/{uc_model_name}/{latest_version}'
     loaded_model = mlflow.pyfunc.load_model(logged_model_uri)
-    logger.info("Model loaded successfully.")
+    logger.info(f"Model version {latest_version} loaded successfully.")
 
-    # --- Load and Process Test Data ---
+    # --- Load and Process Test Data from Volume ---
     test_df = pd.read_csv(os.path.join(processed_datapath, 'test_FD001.csv'))
     rul_df = pd.read_csv(os.path.join(processed_datapath, 'RUL_FD001.csv'))
-    logger.info("Loaded processed test and RUL data.")
+    logger.info("Loaded processed test and RUL data from Volume.")
 
     # --- Feature Engineering on Test Data (Must match training) ---
     window_size = 5
@@ -37,19 +53,22 @@ def predict_on_test_data(processed_datapath, models_path, model_name="Predictive
     test_df.fillna(0, inplace=True)
     logger.info("Engineered features for test data.")
     
-    # The ground truth RUL is the last RUL value for each engine in the test set
     truth_rul = test_df.groupby('unit_number')['time_in_cycles'].max().reset_index()
     truth_rul = pd.merge(truth_rul, rul_df, left_index=True, right_index=True)
     truth_rul['RUL'] = truth_rul['time_in_cycles'] + truth_rul['RUL']
     y_true = truth_rul['RUL']
 
-    # We need to predict only on the last cycle for each engine
-    X_test = test_df.groupby('unit_number').last().reset_index()
-    X_test = X_test.drop(columns=['unit_number', 'time_in_cycles'] + feature_cols)
+    # --- START OF PREDICTION CHANGES ---
+    # We keep the full test set to get 'unit_number' for the final table
+    X_test_full_df = test_df.groupby('unit_number').last().reset_index()
+    
+    # We drop the columns just for the prediction step
+    X_test_features_df = X_test_full_df.drop(columns=['unit_number', 'time_in_cycles'] + feature_cols)
 
     # --- Make Predictions ---
-    logger.info(f"Making predictions on {X_test.shape[0]} engines...")
-    y_pred = loaded_model.predict(X_test)
+    logger.info(f"Making predictions on {X_test_features_df.shape[0]} engines...")
+    y_pred = loaded_model.predict(X_test_features_df)
+    # --- END OF PREDICTION CHANGES ---
 
     # --- Evaluate Performance ---
     rmse = np.sqrt(mean_squared_error(y_true, y_pred))
@@ -62,14 +81,47 @@ def predict_on_test_data(processed_datapath, models_path, model_name="Predictive
     logger.info(f"R2 Score:   {r2:.4f}")
     logger.info("---------------------------")
     
+    # --- START NEW SECTION: Save Predictions ---
+    logger.info("Saving predictions to a Delta table...")
+
+    # 1. Create a results DataFrame
+    results_df = pd.DataFrame({
+        'unit_number': X_test_full_df['unit_number'],
+        'prediction': y_pred,
+        'ground_truth_rul': y_true
+    })
+
+    # 2. Convert to Spark DataFrame
+    spark = SparkSession.builder.getOrCreate()
+    spark_results_df = spark.createDataFrame(results_df)
+    
+    # 3. Define the table name (e.g., in the same schema as the model)
+    table_name = f"{uc_model_name}_predictions" 
+    
+    # 4. Save as a Delta table
+    spark_results_df.write.mode("overwrite").option("overwriteSchema", "true").saveAsTable(table_name)
+    
+    logger.info(f"Successfully saved predictions to '{table_name}'")
+    # --- END NEW SECTION ---
+    
     return {"rmse": rmse, "mae": mae, "r2": r2}
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
 
-    project_dir = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
-    processed_datapath = os.path.join(project_dir, 'data', 'processed')
-    models_path = os.path.join(project_dir, 'models')
+    # --- Databricks-specific Change ---
+    # Define your Unity Catalog paths here.
+    # !! UPDATE THESE PLACEHOLDERS to match your environment !!
+    CATALOG_NAME = "jet_engine_catalog"
+    SCHEMA_NAME = "dev_schema"
+    VOLUME_NAME = "models_volume" # The name of your UC Volume
 
-    predict_on_test_data(processed_datapath, models_path)
+    # Define the absolute paths within your Volume
+    processed_datapath = f"/Volumes/{CATALOG_NAME}/{SCHEMA_NAME}/{VOLUME_NAME}/data/processed"
+    
+    # Define the 3-level name for your model in the UC Registry
+    uc_model_name = f"{CATALOG_NAME}.{SCHEMA_NAME}.PredictiveMaintenanceRUL"
+
+    # Run the main function
+    predict_on_test_data(processed_datapath, uc_model_name)

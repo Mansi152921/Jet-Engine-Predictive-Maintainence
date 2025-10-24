@@ -1,15 +1,14 @@
 # .github/workflows/databricks_pipeline.yml
-
 name: Databricks CI/CD Pipeline
 
 on:
-  push:
-    branches:
-      - main
-      - dev
+  #push:
+    #branches:
+      #- main
+      #- dev
   pull_request:
     branches:
-      - main
+      #- main
       - dev
 
 jobs:
@@ -30,26 +29,20 @@ jobs:
       - name: Lint with flake8
         run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
-  # 2. Deploy and Run on DEV Environment
+  # 2. Deploy and Run on DEV Environment (The New Way)
   run-on-dev:
     needs: ci-checks
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev' # Only runs for the 'dev' branch
+    #if: github.ref == 'refs/heads/dev' # Only runs for merges/pushes to 'dev'
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v3
-      - name: Deploy and Trigger DEV Job
+      - name: Trigger DEV Job on Databricks
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
         run: |
           pip install databricks-cli
-          DBFS_PATH="/Workspace/Repos/mansi.chauhan@bizmetric.com/Jet-Engine-Predictive-Maintainence"          
-          echo "Uploading code to DEV path: ${DBFS_PATH}"
-          databricks fs rm -r ${DBFS_PATH} || true
-          databricks fs cp -r src ${DBFS_PATH}/src
-          echo "Submitting DEV job..."
-          databricks runs submit --json-file dev_job_config.json
+          # The only command you need now! Replace with your DEV Job ID.
+          databricks jobs run-now --job-id 1008934614204806
 
   # 3. Deploy and Run on PRODUCTION Environment
   run-on-prod:

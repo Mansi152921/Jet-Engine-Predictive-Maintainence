@@ -8,9 +8,12 @@ def make_dataset(input_filepath, output_filepath):
     """
     Runs data processing scripts to turn raw data from (../raw) into
     cleaned data ready to be analyzed (saved in ../processed).
+    
+    In Databricks, these paths are expected to be absolute paths,
+    e.g., /Volumes/<catalog>/<schema>/<volume>/data/raw
     """
     logger = logging.getLogger(__name__)
-    logger.info('Starting data loading and processing...') 
+    logger.info('Starting data loading and processing...')
 
     # Define column names based on the dataset's documentation
     index_names = ['unit_number', 'time_in_cycles']
@@ -19,6 +22,7 @@ def make_dataset(input_filepath, output_filepath):
     col_names = index_names + setting_names + sensor_names
 
     # --- Load Training Data ---
+    # os.path.join works correctly for building paths like /Volumes/.../train_FD001.txt
     train_path = os.path.join(input_filepath, 'train_FD001.txt')
     logger.info(f'Loading training data from {train_path}')
     train_df = pd.read_csv(train_path, sep=r'\s+', header=None, names=col_names)
@@ -34,6 +38,7 @@ def make_dataset(input_filepath, output_filepath):
     rul_df = pd.read_csv(rul_path, sep=r'\s+', header=None, names=['RUL'])
 
     # --- Save the processed dataframes to the output folder ---
+    # This will create the /data/processed folder inside your Volume if it doesn't exist
     os.makedirs(output_filepath, exist_ok=True)
     
     train_output_path = os.path.join(output_filepath, 'train_FD001.csv')
@@ -56,11 +61,16 @@ if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
 
-    # Define project directory paths
-    # Assumes the script is run from the root of the project directory
-    project_dir = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
-    input_filepath = os.path.join(project_dir, 'data', 'raw')
-    output_filepath = os.path.join(project_dir, 'data', 'processed')
+    # --- Databricks-specific Change ---
+    # Define your Unity Catalog paths here.
+    # !! UPDATE THESE PLACEHOLDERS to match your environment !!
+    CATALOG_NAME = "jet_engine_catalog"
+    SCHEMA_NAME = "dev_schema"
+    VOLUME_NAME = "models_volume" # The name of your UC Volume
+
+    # Define the absolute input and output paths within your Volume
+    input_filepath = f"/Volumes/{CATALOG_NAME}/{SCHEMA_NAME}/{VOLUME_NAME}/data/raw"
+    output_filepath = f"/Volumes/{CATALOG_NAME}/{SCHEMA_NAME}/{VOLUME_NAME}/data/processed"
 
     # Run the main function
-    make_dataset(input_filepath, output_filepath) 
+    make_dataset(input_filepath, output_filepath)

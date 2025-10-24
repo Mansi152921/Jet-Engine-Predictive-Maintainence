@@ -1,5 +1,5 @@
 # src/models/train_model.py
-#this is the test change 
+
 import os
 import logging
 import pandas as pd
@@ -15,24 +15,43 @@ import lightgbm as lgb
 
 from sklearn.metrics import mean_squared_error, r2_score
 
-def train_multiple_models(final_datapath, models_path):
+# --- Databricks-specific Change ---
+# We now pass the 3-level Unity Catalog model name to the function
+def train_multiple_models(final_datapath, uc_model_name):
     """
-    Trains multiple models, compares them using MLflow, and registers the best one.
+    Trains multiple models, compares them using MLflow, and registers the best one
+    to the Unity Catalog Model Registry.
     """
     logger = logging.getLogger(__name__)
-    mlflow.set_tracking_uri("http://127.0.0.1:5000")
+
+    # --- Databricks-specific Change ---
+    # REMOVED: mlflow.set_tracking_uri(...) - Databricks handles this automatically.
+    
+    # --- Databricks-specific Change ---
+    # Set the registry to Unity Catalog (recommended)
+    mlflow.set_tracking_uri("databricks")
+    mlflow.set_registry_uri("databricks-uc")
+    
     logger.info('Starting model training and selection process...')
 
-    # --- Load Final Data ---
-    X_train = pd.read_csv(os.path.join(final_datapath, 'X_train.csv'))
-    y_train = pd.read_csv(os.path.join(final_datapath, 'y_train.csv')).values.ravel()
+    experiment_path = f"/Shared/{uc_model_name}"
+    mlflow.set_experiment(experiment_name=experiment_path)
+
+    # --- Load Final Data from UC Volume ---
+    # The path is now a direct Volume path, not a relative OS path
+    X_train_path = os.path.join(final_datapath, 'X_train.csv')
+    y_train_path = os.path.join(final_datapath, 'y_train.csv')
+    
+    logger.info(f"Loading data from: {X_train_path}")
+    X_train = pd.read_csv(X_train_path)
+    y_train = pd.read_csv(y_train_path).values.ravel()
     logger.info(f'Loaded training data with shape X: {X_train.shape}, y: {y_train.shape}')
     
     # --- Define Models to Train ---
     models = {
         "LinearRegression": LinearRegression(),
         "SVM": SVR(), # Support Vector Machine for Regression
-        "RandomForest": RandomForestRegressor(n_estimators=50, max_depth=10, n_jobs=-1, random_state=42),
+"RandomForest": RandomForestRegressor(n_estimators=50, max_depth=10, n_jobs=-1, random_state=42),
         "LightGBM": lgb.LGBMRegressor(random_state=42)
     }
 
@@ -67,10 +86,8 @@ def train_multiple_models(final_datapath, models_path):
     best_run = None
     best_rmse = float('inf')
 
-    # Find the run with the lowest RMSE
     for run in runs:
         run_metrics = run.data.metrics
-        # Note: autologger for scikit-learn logs training RMSE as 'training_root_mean_squared_error'
         metric_key = 'training_root_mean_squared_error' 
         if metric_key in run_metrics and run_metrics[metric_key] < best_rmse:
             best_rmse = run_metrics[metric_key]
@@ -81,11 +98,14 @@ def train_multiple_models(final_datapath, models_path):
         logger.info(f"Best model is: {best_model_name} with RMSE: {best_rmse:.4f}")
         
         best_model_uri = f"runs:/{best_run.info.run_id}/model"
+        
+        # --- Databricks-specific Change ---
+        # Register the model using the 3-level UC name
         model_version = mlflow.register_model(
             model_uri=best_model_uri,
-            name="PredictiveMaintenanceRUL"
+            name=uc_model_name
         )
-        logger.info(f"Registered best model as '{model_version.name}' version {model_version.version}")
+        logger.info(f"Registered best model as '{model_version.name}' version {model_version.version} to Unity Catalog")
     else:
         logger.warning("No best model found. Check MLflow runs.")
 
@@ -93,8 +113,21 @@ if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
 
-    project_dir = os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
-    final_datapath = os.path.join(project_dir, 'data', 'final')
-    models_path = os.path.join(project_dir, 'models')
+    # --- Databricks-specific Change ---
+    # Hardcode the paths to your Unity Catalog Volume.
+    # !! UPDATE THESE PLACEHOLDERS !!
+    CATALOG_NAME = "jet_engine_catalog"
+    SCHEMA_NAME = "dev_schema"
+    VOLUME_NAME = "models_volume" # The name of your UC Volume
+    
+    # Path inside your Volume where the data is stored
+    DATA_SUB_PATH = "data/final" 
+    
+    # Define the final paths
+    final_datapath = f"/Volumes/{CATALOG_NAME}/{SCHEMA_NAME}/{VOLUME_NAME}/{DATA_SUB_PATH}"
+    
+    # Define the 3-level name for your model in the UC Registry
+    uc_model_name = f"{CATALOG_NAME}.{SCHEMA_NAME}.PredictiveMaintenanceRUL"
 
-    train_multiple_models(final_datapath, models_path)
+    # Call the main function with the Databricks paths
+    train_multiple_models(final_datapath, uc_model_name)
