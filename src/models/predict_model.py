@@ -28,9 +28,17 @@ def predict_on_test_data(processed_datapath, uc_model_name):
     
     # 2. Get the latest version number for your model
     # This gets the model version with the highest version number
+# 1. Search for all versions of the model
     try:
-        latest_version = client.get_latest_versions(uc_model_name, stages=["None"])[0].version
+        # search_model_versions returns a list, which might not be sorted.
+        all_versions = client.search_model_versions(f"name='{uc_model_name}'")
+        
+        # 2. Sort by version number (as an int) in descending order and get the latest
+        latest_version_obj = sorted(all_versions, key=lambda v: int(v.version), reverse=True)[0]
+        latest_version = latest_version_obj.version
+        
         logger.info(f"Found latest version: {latest_version}")
+        
     except IndexError:
         logger.error(f"No model versions found for '{uc_model_name}'. Did the training job run?")
         raise
