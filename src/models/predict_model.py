@@ -5,6 +5,10 @@ import logging
 import pandas as pd
 import numpy as np
 import mlflow
+# --- ADD THIS IMPORT ---
+from mlflow.tracking import MlflowClient 
+# ---------------------
+
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 
 def predict_on_test_data(processed_datapath, uc_model_name):
@@ -14,21 +18,33 @@ def predict_on_test_data(processed_datapath, uc_model_name):
     """
     logger = logging.getLogger(__name__)
     
-    # --- Databricks-specific Change ---
-    # Set the registry to Unity Catalog
     mlflow.set_registry_uri("databricks-uc")
+    logger.info(f"Loading latest version of model '{uc_model_name}' from Unity Catalog...")
+
+    # --- START OF CHANGES ---
+
+    # 1. Instantiate an MLflow Client
+    client = MlflowClient()
     
-    # REMOVED: mlflow.set_tracking_uri(...) - Databricks handles this.
-
-    logger.info(f"Loading model '{uc_model_name}' (latest version) from Unity Catalog...")
-
-    # --- Load the Registered Model ---
-    # The UC URI format loads the latest version of the model
-    logged_model_uri = f'models:/{uc_model_name}@latest'
+    # 2. Get the latest version number for your model
+    # This gets the model version with the highest version number
+    try:
+        latest_version = client.get_latest_versions(uc_model_name, stages=["None"])[0].version
+        logger.info(f"Found latest version: {latest_version}")
+    except IndexError:
+        logger.error(f"No model versions found for '{uc_model_name}'. Did the training job run?")
+        raise
+    
+    # 3. Load the model using its specific version number
+    logged_model_uri = f'models:/{uc_model_name}/{latest_version}'
+    
+    # --- END OF CHANGES ---
+    
     loaded_model = mlflow.pyfunc.load_model(logged_model_uri)
-    logger.info("Model loaded successfully.")
+    logger.info(f"Model version {latest_version} loaded successfully.")
 
     # --- Load and Process Test Data from Volume ---
+    # ... (rest of your file is correct) ...
     test_df = pd.read_csv(os.path.join(processed_datapath, 'test_FD001.csv'))
     rul_df = pd.read_csv(os.path.join(processed_datapath, 'RUL_FD001.csv'))
     logger.info("Loaded processed test and RUL data from Volume.")
